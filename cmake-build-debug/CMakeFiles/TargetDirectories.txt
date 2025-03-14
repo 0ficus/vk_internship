@@ -1,0 +1,3 @@
+/home/oficus/CLionProjects/vk_internship/cmake-build-debug/CMakeFiles/vk_internship.dir
+/home/oficus/CLionProjects/vk_internship/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/oficus/CLionProjects/vk_internship/cmake-build-debug/CMakeFiles/rebuild_cache.dir
