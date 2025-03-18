@@ -1,7 +1,8 @@
+#include <cstdint>
 #include <fstream>
+#include <queue>
 #include <iostream>
 #include <set>
-#include <cstdint>
 #include <vector>
 
 const size_t INF = SIZE_MAX;
@@ -15,7 +16,7 @@ void isPossibleParsing(std::ifstream& parser) {
 }
 
 void
-parseData(size_t &start_vertex, std::vector<size_t> &distances, std::set<std::pair<size_t, size_t>> &dijkstra_queue,
+parseData(size_t &start_vertex, std::vector<size_t> &distances,
           std::vector<std::vector<size_t>> &graph_topology) {
     size_t vertexes_amount, edges_amount;
     std::ifstream parser;
@@ -38,8 +39,6 @@ parseData(size_t &start_vertex, std::vector<size_t> &distances, std::set<std::pa
         isPossibleParsing(parser);
         parser >> second_vertex;
 
-        dijkstra_queue.insert({INF, first_vertex});
-        dijkstra_queue.insert({INF, second_vertex});
         graph_topology[first_vertex].emplace_back(second_vertex);
         graph_topology[second_vertex].emplace_back(first_vertex);
     }
@@ -47,23 +46,22 @@ parseData(size_t &start_vertex, std::vector<size_t> &distances, std::set<std::pa
     parser >> start_vertex;
 }
 
-void applyDijkstra(const size_t start_vertex, std::vector<size_t> &distances,
-                   std::set<std::pair<size_t, size_t>> &dijkstra_queue,
+void applyBFS(const size_t start_vertex, std::vector<size_t> &distances,
                    const std::vector<std::vector<size_t>> &graph_topology) {
     distances[start_vertex] = 0;
-    dijkstra_queue.insert({0, start_vertex});
-    dijkstra_queue.erase({INF, start_vertex});
+    std::queue<size_t> queue_vertexes;
+    std::vector<bool> used(distances.size(), false);
 
-    while (!dijkstra_queue.empty()) {
-        size_t num_top = dijkstra_queue.begin()->second;
-        dijkstra_queue.erase(dijkstra_queue.begin());
-        for (size_t new_top_dist: graph_topology[num_top]) {
-            size_t new_top = new_top_dist;
-            size_t distance = SIMPLE_LENGTH;
-            if (distances[num_top] + distance < distances[new_top]) {
-                dijkstra_queue.erase({distances[new_top], new_top});
-                distances[new_top] = distances[num_top] + distance;
-                dijkstra_queue.insert({distances[new_top], new_top});
+    used[start_vertex] = true;
+    queue_vertexes.push(start_vertex);
+    while (!queue_vertexes.empty()) {
+        size_t current_vertex = queue_vertexes.front();
+        queue_vertexes.pop();
+        for (size_t nearby_vertex : graph_topology[current_vertex]) {
+            if (!used[nearby_vertex]) {
+                used[nearby_vertex] = true;
+                queue_vertexes.push(nearby_vertex);
+                distances[nearby_vertex] = SIMPLE_LENGTH + distances[current_vertex];
             }
         }
     }
@@ -81,8 +79,8 @@ void solve() {
     std::set<std::pair<size_t, size_t>> dijkstra_queue;
     std::vector<std::vector<size_t>> graph_topology;
     try {
-        parseData(start_vertex, distances, dijkstra_queue, graph_topology);
-        applyDijkstra(start_vertex, distances, dijkstra_queue, graph_topology);
+        parseData(start_vertex, distances, graph_topology);
+        applyBFS(start_vertex, distances, graph_topology);
         printAnswer(distances);
     } catch (std::exception& exception) {
         std::cerr << exception.what();
